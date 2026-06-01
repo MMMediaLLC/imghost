@@ -19,8 +19,23 @@ app.use(express.json());
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
 const ALLOWED_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
 
+const CYR_MAP = {
+  а:'a', б:'b', в:'v', г:'g', д:'d', ѓ:'gj', е:'e', ж:'zh', з:'z', ѕ:'dz',
+  и:'i', ј:'j', к:'k', л:'l', љ:'lj', м:'m', н:'n', њ:'nj', о:'o', п:'p',
+  р:'r', с:'s', т:'t', ќ:'kj', у:'u', ф:'f', х:'h', ц:'c', ч:'ch', џ:'dj', ш:'sh',
+  // common Serbian/Russian extras
+  ё:'e', ы:'y', э:'e', ю:'yu', я:'ya', щ:'sht', ъ:'a', ь:'', ћ:'c', ђ:'dj', й:'j'
+};
+
+function transliterate(s) {
+  return s.replace(/[а-яёѓѕјљњќџ]/gi, ch => {
+    const mapped = CYR_MAP[ch.toLowerCase()];
+    return mapped === undefined ? ch : mapped;
+  });
+}
+
 function slugify(name) {
-  return name
+  return transliterate(name)
     .toLowerCase()
     .normalize('NFKD').replace(/[̀-ͯ]/g, '') // strip accents
     .replace(/[^a-z0-9]+/g, '-')                       // non-alphanumeric -> dash
