@@ -19,11 +19,27 @@ app.use(express.json());
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
 const ALLOWED_EXTS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
 
+function slugify(name) {
+  return name
+    .toLowerCase()
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '') // strip accents
+    .replace(/[^a-z0-9]+/g, '-')                       // non-alphanumeric -> dash
+    .replace(/^-+|-+$/g, '')                           // trim dashes
+    .slice(0, 60);
+}
+
 const storage = multer.diskStorage({
   destination: UPLOADS_DIR,
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, uuidv4() + ext);
+    let base = slugify(path.basename(file.originalname, path.extname(file.originalname)));
+    if (!base) base = 'image';
+    let filename = base + ext;
+    // avoid overwriting an existing file: append a short suffix
+    while (fs.existsSync(path.join(UPLOADS_DIR, filename))) {
+      filename = base + '-' + uuidv4().slice(0, 4) + ext;
+    }
+    cb(null, filename);
   },
 });
 
