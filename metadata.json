@@ -1,6 +1,0 @@
-{
-  "name": "Minimal Image Host",
-  "description": "A minimal, secure developer-focused personal image hosting service built on Node.js and Express.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
