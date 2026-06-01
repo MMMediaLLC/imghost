@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>imghost // minimal image hosting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #111111;
+      --panel: #181818;
+      --panel-hover: #1f1f1f;
+      --border: #333333;
+      --border-focus: #00ff00;
+      --text: #eeeef0;
+      --text-muted: #666666;
+      --accent: #00ff00; /* Neon Terminal Green */
+      --accent-dim: rgba(0, 255, 0, 0.05);
+      --danger: #ff4444;
+      --success-bg: #052e16;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      padding: 2.5rem 1.5rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 850px;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Typography */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      text-transform: uppercase;
+    }
+
+    .brand-host {
+      color: var(--accent);
+    }
+
+    h2 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    /* Auth Screen styling */
+    .auth-wrapper {
+      margin-top: 6rem;
+      width: 100%;
+      max-width: 420px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    /* Buttons & Inputs */
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      background-color: #0d0d0d;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 0.75rem 1rem;
+      font-family: inherit;
+      font-size: 0.8rem;
+      border-radius: 0; /* Fully flat minimalist style */
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input[type="password"]:focus,
+    input[type="text"]:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 5px rgba(0, 255, 0, 0.15);
+    }
+
+    button {
+      background-color: #333333;
+      color: var(--text);
+      font-weight: 700;
+      font-family: inherit;
+      border: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover {
+      background-color: var(--panel-hover);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    button.btn-accent {
+      background-color: var(--accent);
+      color: #050505;
+      border-color: var(--accent);
+    }
+
+    button.btn-accent:hover {
+      background-color: #00dd00;
+      color: #000;
+    }
+
+    button.btn-muted {
+      background-color: #121212;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    button.btn-muted:hover {
+      background-color: var(--panel-hover);
+      border-color: var(--border-focus);
+      color: var(--text);
+    }
+
+    /* Upload Area */
+    .drop-zone {
+      background-color: var(--panel);
+      border: 2px dashed var(--border);
+      border-radius: 0;
+      padding: 4.5rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background-color 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      position: relative;
+    }
+
+    .drop-zone:hover {
+      border-color: var(--accent);
+      background-color: #1c1c1c;
+    }
+
+    .drop-zone.dragover {
+      border-color: var(--accent);
+      background-color: var(--accent-dim);
+    }
+
+    .drop-zone-text {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .drop-zone-icon {
+      font-size: 2.25rem;
+      color: var(--text-muted);
+      transition: color 0.15s ease;
+    }
+
+    .drop-zone:hover .drop-zone-icon {
+      color: var(--accent);
+    }
+
+    /* Upload Result Section */
+    .result-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .image-preview-wrapper {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .image-preview {
+      max-width: 180px;
+      max-height: 180px;
+      border: 1px solid var(--border);
+      object-fit: cover;
+      background: #0d0d0d;
+    }
+
+    .image-details {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex-grow: 1;
+      gap: 0.75rem;
+    }
+
+    .copy-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Gallery Section */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .gallery-card {
+      background-color: var(--panel);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .gallery-card:hover {
+      border-color: var(--accent);
+    }
+
+    .gallery-thumb-container {
+      position: relative;
+      width: 100%;
+      padding-top: 75%; /* aspect-ratio 4:3 style */
+      background-color: #0a0a0a;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .gallery-thumb {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease, filter 0.3s ease;
+      filter: grayscale(30%);
+    }
+
+    .gallery-card:hover .gallery-thumb {
+      transform: scale(1.03);
+      filter: grayscale(0%);
+    }
+
+    .gallery-info {
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .gallery-filename {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-transform: lowercase;
+    }
+
+    /* Utility classes */
+    .hidden {
+      display: none !important;
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toast {
+      background: #141414;
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--accent);
+      color: var(--text);
+      font-size: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      animation: slideIn 0.35s ease forwards;
+    }
+
+    .toast.error {
+      border-left-color: var(--danger);
+    }
+
+    @keyframes slideIn {
+      0% { transform: translateY(1rem); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    .btn-small {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.7rem;
+      height: fit-content;
+    }
+
+    /* Terminal ASCII progress indicator styling */
+    .progress-bar-container {
+      width: 100%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .progress-bar-text {
+      font-size: 0.75rem;
+      font-family: inherit;
+      color: var(--accent);
+    }
+
+    /* Blinking character styling like design HTML */
+    .pulse-cursor {
+      color: var(--accent);
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      from, to { color: transparent }
+      50% { color: var(--accent); }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="auth-container" class="auth-wrapper hidden">
+    <div>
+      <h1 style="margin-bottom: 0.25rem;">IMG_HOST <span class="pulse-cursor">_</span></h1>
+      <p class="subtitle" style="text-transform: uppercase; font-size: 0.65rem; color: var(--text-muted);">Storage: /var/www/imghost/uploads</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <div>
+        <label for="password-input" style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">ENTER ACCESS PASSWORD</label>
+        <input type="password" id="password-input" placeholder="PASSWD...">
+      </div>
+      <button id="login-button" class="btn-accent" style="width: 100%;">AUTHORIZE CONNECT</button>
+    </div>
+  </div>
+
+  <div id="app-container" class="container hidden">
+    <header>
+      <div>
+        <h1>IMG_HOST <span class="pulse-cursor">_</span></h1>
+        <p class="subtitle" style="font-size: 0.65rem; margin-top: 0.15rem; color: var(--text-muted);">Storage: /var/www/imghost/uploads</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 1.5rem;">
+        <div style="text-align: right; line-height: 1.2;">
+          <div style="font-size: 9px; color: var(--text-muted); text-transform: uppercase;">Node.js 20.x • Express</div>
+          <div style="font-size: 10px; color: var(--text-muted);">AUTH_STATUS: <span style="color: var(--accent);">ACTIVE</span></div>
+        </div>
+        <button id="logout-button" class="btn-muted btn-small">// logout</button>
+      </div>
+    </header>
+
+    <main style="display: flex; flex-direction: column; gap: 2rem;">
+      <section>
+        <div id="drop-zone" class="drop-zone">
+          <input type="file" id="file-input" accept="image/png, image/jpeg, image/jpg, image/gif, image/webp" class="hidden">
+          <div id="drop-zone-prompt" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <div class="drop-zone-icon">
+              <!-- Inline SVG matching Clean Minimalism -->
+              <svg class="w-8 h-8" style="width: 2rem; height: 2rem; opacity: 0.6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M12 4v16m8-8H4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div style="font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em;">DRAG & DROP OR CLICK TO UPLOAD</div>
+            <div class="drop-zone-text" style="font-size: 0.65rem; color: #555;">JPG, PNG, GIF, WEBP (MAX 20MB)</div>
+          </div>
+          
+          <div id="drop-zone-progress" class="progress-bar-container hidden">
+            <div class="drop-zone-icon" style="animation: spin 2s linear infinite;">&#10227;</div>
+            <div style="font-size: 0.75rem; font-weight: bold; letter-spacing: 0.15em;">UPLOADING STAGE</div>
+            <div id="progress-text" class="progress-bar-text">[                    ] 0%</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Active Upload Result box -->
+      <section id="result-section" class="result-box hidden">
+        <h2>// Latest Upload</h2>
+        <div class="image-preview-wrapper" style="align-items: center;">
+          <img id="result-img" class="image-preview" src="" alt="Latest result">
+          <div class="image-details">
+            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
+              STATUS: <span style="color: var(--accent);">OK (Saved Successfully)</span>
+            </div>
+            <div class="copy-group">
+              <input type="text" id="result-url" readonly style="color: var(--accent);">
+              <button id="copy-result-button">Copy</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent uploads list -->
+      <section>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h2>// Recent Records (20)</h2>
+          <span style="font-size: 9px; color: #444; font-weight: 700;">FS_WATCHER: IDLE</span>
+        </div>
+        <div id="gallery-empty" class="subtitle" style="padding: 3rem; border: 1px dashed var(--border); text-align: center; color: var(--text-muted); font-size: 0.7rem;">
+          No images uploaded yet. Upload your first image above to populate the records.
+        </div>
+        <div id="gallery-grid" class="gallery-grid hidden">
+          <!-- Inject cards dynamically -->
+        </div>
+      </section>
+    </main>
+
+    <footer style="margin-top: 4rem; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 1.5rem; font-size: 9px; color: #555;">
+      <div style="display: flex; gap: 1.5rem;">
+        <span>UPTIME: 14D 02H 11M</span>
+        <span>LOAD: 0.04 0.12 0.09</span>
+      </div>
+      <div class="uppercase">HETZNER CX33 / UBUNTU 22.04 LTS</div>
+    </footer>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script>
+    // Constants
+    const authContainer = document.getElementById('auth-container');
+    const appContainer = document.getElementById('app-container');
+    const passwordInput = document.getElementById('password-input');
+    const loginButton = document.getElementById('login-button');
+    const logoutButton = document.getElementById('logout-button');
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const dropZonePrompt = document.getElementById('drop-zone-prompt');
+    const dropZoneProgress = document.getElementById('drop-zone-progress');
+    const progressText = document.getElementById('progress-text');
+
+    const resultSection = document.getElementById('result-section');
+    const resultImg = document.getElementById('result-img');
+    const resultUrl = document.getElementById('result-url');
+    const copyResultButton = document.getElementById('copy-result-button');
+
+    const galleryEmpty = document.getElementById('gallery-empty');
+    const galleryGrid = document.getElementById('gallery-grid');
+    const toastContainer = document.getElementById('toast-container');
+
+    // State Variables
+    let appPassword = sessionStorage.getItem('imghost_password') || '';
+
+    // Init uploader and verify authorization state
+    function init() {
+      if (appPassword) {
+        verifyPasswordOnServer(appPassword);
+      } else {
+        showAuthScreen();
+      }
+    }
+
+    function showAuthScreen() {
+      authContainer.classList.remove('hidden');
+      appContainer.classList.add('hidden');
+      passwordInput.focus();
+    }
+
+    function showAppScreen() {
+      authContainer.classList.add('hidden');
+      appContainer.classList.remove('hidden');
+      fetchGallery();
+    }
+
+    // Server verification helper
+    async function verifyPasswordOnServer(pwd) {
+      try {
+        const response = await fetch('/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pwd })
+        });
+
+        if (response.ok) {
+          showAppScreen();
+        } else {
+          showToast('Session expired or invalid credential', true);
+          sessionStorage.removeItem('imghost_password');
+          appPassword = '';
+          showAuthScreen();
+        }
+      } catch (err) {
+        showToast('Server unavailable — configured properly?', true);
+        showAuthScreen();
+      }
+    }
+
+    // Login Action
+    async function handleLogin() {
+      const enteredPwd = passwordInput.value.trim();
+      if (!enteredPwd) {
+        showToast('Password is required', true);
+        return;
+      }
+
+      try {
+        const response = await fetch('/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: enteredPwd })
+        });
+
+        if (response.ok) {
+          appPassword = enteredPwd;
+          sessionStorage.setItem('imghost_password', enteredPwd);
+          showToast('Access authorized successfully');
+          showAppScreen();
+        } else {
+          showToast('Invalid password', true);
+          passwordInput.value = '';
+          passwordInput.focus();
+        }
+      } catch (err) {
+        showToast('Communications failure', true);
+      }
+    }
+
+    // Logout Action
+    function handleLogout() {
+      sessionStorage.removeItem('imghost_password');
+      appPassword = '';
+      showToast('Logout completed');
+      showAuthScreen();
+    }
+
+    loginButton.addEventListener('click', handleLogin);
+    passwordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+    logoutButton.addEventListener('click', handleLogout);
+
+    // Dropzone Events & Interactions
+    dropZone.addEventListener('click', () => {
+      // Trigger fileInput only if not active upload session
+      if (dropZoneProgress.classList.contains('hidden')) {
+        fileInput.click();
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleUpload(e.target.files[0]);
+      }
+    });
+
+    // Drag-and-drop bindings
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) {
+        handleUpload(files[0]);
+      }
+    });
+
+    // Custom helper to generate monospace ASCII loader
+    function makeProgressText(percentage) {
+      const totalBlocks = 20;
+      const completedBlocks = Math.round((percentage / 100) * totalBlocks);
+      const remainingBlocks = totalBlocks - completedBlocks;
+      const arrowPoint = (completedBlocks > 0 && remainingBlocks > 0) ? '>' : '=';
+      const barsStr = '='.repeat(Math.max(0, completedBlocks - 1)) + (completedBlocks > 0 ? arrowPoint : '') + ' '.repeat(remainingBlocks);
+      return `[${barsStr}] ${percentage}%`;
+    }
+
+    // Robust file uploader using XMLHttpRequest for state progress monitoring
+    function handleUpload(file) {
+      // Double check format and file constraints
+      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+      const fileName = file.name.toLowerCase();
+      const hasValidExt = allowedExtensions.some(ext => fileName.endsWith(ext));
+
+      if (!hasValidExt) {
+        showToast('Invalid format. Use jpg, jpeg, png, gif, or webp.', true);
+        return;
+      }
+
+      const maxSize = 20 * 1024 * 1024; // 20MB
+      if (file.size > maxSize) {
+        showToast('File size exceeds the 20MB maximum allowance.', true);
+        return;
+      }
+
+      // Enter upload progress state UI
+      dropZonePrompt.classList.add('hidden');
+      dropZoneProgress.classList.remove('hidden');
+      progressText.textContent = makeProgressText(0);
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/upload', true);
+      xhr.setRequestHeader('Authorization', appPassword);
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          progressText.textContent = makeProgressText(percent);
+        }
+      });
+
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          // Re-enable uploader prompts
+          dropZonePrompt.classList.remove('hidden');
+          dropZoneProgress.classList.add('hidden');
+          fileInput.value = ''; // clear input cache
+
+          if (xhr.status === 200) {
+            try {
+              const res = JSON.parse(xhr.responseText);
+              if (res.success) {
+                showToast('Image uploaded successfully!');
+                displayResult(res.url);
+                fetchGallery(); // Refresh record logs
+              } else {
+                showToast(res.error || 'Upload was rejected', true);
+              }
+            } catch (err) {
+              showToast('Invalid operational server response', true);
+            }
+          } else {
+            try {
+              const res = JSON.parse(xhr.responseText);
+              showToast(res.error || 'Server rejected file upload session', true);
+            } catch (err) {
+              showToast(`Transmission error: ${xhr.status}`, true);
+            }
+          }
+        }
+      };
+
+      xhr.send(formData);
+    }
+
+    // Result panel generator
+    function displayResult(url) {
+      resultImg.src = url;
+      resultUrl.value = url;
+      resultSection.classList.remove('hidden');
+      // Scroll directly to result
+      resultSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // copy to clipboards
+    copyResultButton.addEventListener('click', () => {
+      copyToClipboard(resultUrl.value, copyResultButton);
+    });
+
+    async function copyToClipboard(text, targetButton) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Copied URL directly to clipboard');
+        const oldLabel = targetButton.textContent;
+        // visual indicator feedback
+        targetButton.textContent = 'Copied!';
+        targetButton.style.backgroundColor = 'var(--text)';
+        targetButton.style.color = '#111';
+        setTimeout(() => {
+          targetButton.textContent = oldLabel;
+          targetButton.style.backgroundColor = '';
+          targetButton.style.color = '';
+        }, 1200);
+      } catch (err) {
+        showToast('Could not auto-copy, please copy text manually', true);
+      }
+    }
+
+    // Get recently uploaded images
+    async function fetchGallery() {
+      try {
+        const response = await fetch('/images', {
+          method: 'GET',
+          headers: { 'Authorization': appPassword }
+        });
+
+        if (response.ok) {
+          const res = await response.json();
+          renderGallery(res.images || []);
+        } else {
+          if (response.status === 401) {
+            handleLogout();
+          }
+        }
+      } catch (err) {
+        console.error('Failure reaching host records:', err);
+      }
+    }
+
+    // Render recently uploaded files grid
+    function renderGallery(images) {
+      if (images.length === 0) {
+        galleryEmpty.classList.remove('hidden');
+        galleryGrid.classList.add('hidden');
+        return;
+      }
+
+      galleryEmpty.classList.add('hidden');
+      galleryGrid.classList.remove('hidden');
+      galleryGrid.innerHTML = '';
+
+      images.forEach((img, idx) => {
+        const card = document.createElement('div');
+        card.className = 'gallery-card';
+        card.id = `gallery-card-${idx}`;
+
+        const thumbContainer = document.createElement('div');
+        thumbContainer.className = 'gallery-thumb-container';
+
+        const imgEl = document.createElement('img');
+        imgEl.className = 'gallery-thumb';
+        imgEl.src = img.url;
+        imgEl.alt = img.filename;
+        imgEl.loading = 'lazy';
+
+        thumbContainer.appendChild(imgEl);
+
+        const info = document.createElement('div');
+        info.className = 'gallery-info';
+
+        const filename = document.createElement('div');
+        filename.className = 'gallery-filename';
+        filename.textContent = img.filename;
+        filename.title = img.filename;
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'btn-muted btn-small';
+        copyBtn.textContent = 'Copy URL';
+        copyBtn.style.width = '100%';
+        copyBtn.id = `copy-btn-${idx}`;
+        copyBtn.addEventListener('click', () => {
+          copyToClipboard(img.url, copyBtn);
+        });
+
+        info.appendChild(filename);
+        info.appendChild(copyBtn);
+
+        card.appendChild(thumbContainer);
+        card.appendChild(info);
+
+        galleryGrid.appendChild(card);
+      });
+    }
+
+    // Notify alert toast helper
+    function showToast(message, isError = false) {
+      const toast = document.createElement('div');
+      toast.className = `toast ${isError ? 'error' : ''}`;
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-0.5rem)';
+        toast.style.transition = 'all 0.35s ease';
+        setTimeout(() => {
+          toast.remove();
+        }, 350);
+      }, 3000);
+    }
+
+    // Spin animation CSS dynamic injection
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Boot system
+    init();
+  </script>
+</body>
+</html>
